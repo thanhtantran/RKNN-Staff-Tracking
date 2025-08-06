@@ -1,21 +1,36 @@
+"""This code was written by JimmyNguyen09-AI, give me the stars or forks if you fell it good:))
+Any question please send me by the contact already linked on my github account. Thanks"""
+
 import torch
 import cv2
 import time
 
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='../yolov5/yolov5m.pt')
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='../yolov5/yolov5m.pt')  #Change the checkpoint path
 PERSON_ID = 0
 CHAIR_ID = 56
-def compute_iou(boxA, boxB):
+def compute_iou(boxA, boxB)->float:
+    """
+    :param boxA:
+    :param boxB:
+    :return: float
+    Calculate the iou score by the formula: IoU = interArea / (areaA + areaB - interArea)
+    You can also calculate the coordinates of the central point of the person's bounding
+    box then consider it in the bounding box of the chair
+    But apply Iou score gives better performance :>
+    """
     xA = max(boxA[0], boxB[0])
     yA = max(boxA[1], boxB[1])
     xB = min(boxA[2], boxB[2])
     yB = min(boxA[3], boxB[3])
-
+    """Find 2 edges of overlap rectangle"""
     interW = max(0, xB - xA + 1)
     interH = max(0, yB - yA + 1)
     interArea = interW * interH
     if interArea == 0:
         return 0.0
+    """
+    Calculate S of 2 areas, 1 is the value of 1 pixel, remove it is fine!
+    """
     areaA = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
     areaB = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
 
@@ -23,7 +38,7 @@ def compute_iou(boxA, boxB):
     return iou
 
 
-video_path = '../test.mp4'
+video_path = '../test.mp4' #Change the input video here
 cap = cv2.VideoCapture(video_path)
 
 chair_timers = []
@@ -31,16 +46,16 @@ chair_elapsed = []
 fps = cap.get(cv2.CAP_PROP_FPS)
 width = 640
 height = 480
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec cho .mp4
-out = cv2.VideoWriter('../yolov5/output.mp4', fourcc, fps, (width, height))
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+out = cv2.VideoWriter('../yolov5/output.mp4', fourcc, fps, (width, height)) #Output video path
 while cap.isOpened():
     flag, frame = cap.read()
     if not flag:
         break
     frame = cv2.resize(frame, (640, 480))
     results = model(frame)
-    detections = results.xyxy[0]  # [x1, y1, x2, y2, conf, cls]
-    detections = detections[detections[:, 4] > 0.4]
+    detections = results.xyxy[0]  # return [x1, y1, x2, y2, conf, cls]
+    detections = detections[detections[:, 4] > 0.4] #set the thresh hold of model (0.35-0.5)
 
     persons = []
     chairs = []
