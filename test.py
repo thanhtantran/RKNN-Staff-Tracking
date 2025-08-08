@@ -54,8 +54,8 @@ while cap.isOpened():
         break
     frame = cv2.resize(frame, (640, 480))
     results = model(frame)
-    detections = results.xyxy[0]  # [x1, y1, x2, y2, conf, cls]
-    detections = detections[detections[:, 4] > 0.4]
+    detections = results.xyxy[0]  # return [x1, y1, x2, y2, conf, cls]
+    detections = detections[detections[:, 4] > 0.4] #set the thresh hold of model (0.35-0.5)
 
     persons = []
     chairs = []
