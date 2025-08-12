@@ -187,6 +187,11 @@ def init_rknn_model(model_path, target_platform='rk3588'):
     return rknn
 
 def main():
+
+    # Set headless mode
+    import os
+    os.environ['QT_QPA_PLATFORM'] = 'offscreen'
+
     # RKNN model path - update this to your model path
     rknn_model = './yolov5/yolov5.rknn'  # Change to your RKNN model path
     target_platform = 'rk3588'  # Change to your target platform
@@ -312,7 +317,7 @@ def main():
                             (0, 0, 255), 2)
         
         # Display and save frame
-        cv2.imshow('Staff Tracking', display_frame)
+        # cv2.imshow('Staff Tracking', display_frame)
         out.write(display_frame)
         
         if cv2.waitKey(1) == 27:
@@ -321,7 +326,7 @@ def main():
     # Release resources
     cap.release()
     out.release()
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
     rknn.release()
 
 if __name__ == '__main__':
