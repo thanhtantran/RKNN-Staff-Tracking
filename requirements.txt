@@ -1,2 +1,4 @@
 torch
 opencv-python
+rknn-toolkit2
+numpy
