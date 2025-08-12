@@ -219,14 +219,31 @@ def main():
         if not flag:
             break
         
-        # Resize frame
-        frame = cv2.resize(frame, (640, 480))
+        # Resize frame for display and output
+        display_frame = cv2.resize(frame, (width, height))
         
-        # Preprocess image for RKNN
+        # Preprocess image for RKNN - resize to 640x640 with letterboxing
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        h, w, _ = img.shape
+        
+        # Create a square canvas of 640x640
+        canvas = np.zeros((IMG_SIZE[1], IMG_SIZE[0], 3), dtype=np.uint8)
+        
+        # Calculate scaling factor to fit the image within 640x640 while preserving aspect ratio
+        scale = min(IMG_SIZE[0]/w, IMG_SIZE[1]/h)
+        new_w, new_h = int(w * scale), int(h * scale)
+        
+        # Resize the image
+        resized_img = cv2.resize(img, (new_w, new_h))
+        
+        # Calculate padding
+        dw, dh = (IMG_SIZE[0] - new_w) // 2, (IMG_SIZE[1] - new_h) // 2
+        
+        # Place the resized image on the canvas
+        canvas[dh:dh+new_h, dw:dw+new_w, :] = resized_img
         
         # Inference with RKNN
-        outputs = rknn.inference(inputs=[img])
+        outputs = rknn.inference(inputs=[canvas])
         
         # Post-process outputs
         boxes, classes, scores = post_process(outputs, anchors)
@@ -234,10 +251,26 @@ def main():
         persons = []
         chairs = []
         
-        # Process detections
+        # Process detections and scale boxes back to original frame size
         if boxes is not None:
             for box, score, cl in zip(boxes, scores, classes):
+                # Scale boxes from 640x640 to original frame size
                 x1, y1, x2, y2 = [int(_b) for _b in box]
+                
+                # Remove padding offset
+                x1 = (x1 - dw) / scale
+                y1 = (y1 - dh) / scale
+                x2 = (x2 - dw) / scale
+                y2 = (y2 - dh) / scale
+                
+                # Clip to frame boundaries
+                x1, y1 = max(0, int(x1)), max(0, int(y1))
+                x2, y2 = min(w, int(x2)), min(h, int(y2))
+                
+                # Scale to display frame size
+                x1, y1 = int(x1 * width / w), int(y1 * height / h)
+                x2, y2 = int(x2 * width / w), int(y2 * height / h)
+                
                 cls = int(cl)
                 box_coords = [x1, y1, x2, y2]
                 if cls == PERSON_ID:
@@ -247,8 +280,8 @@ def main():
         
         # Draw persons
         for person in persons:
-            cv2.rectangle(frame, (person[0], person[1]), (person[2], person[3]), (0, 255, 0), 2)
-            cv2.putText(frame, "", (person[0], person[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            cv2.rectangle(display_frame, (person[0], person[1]), (person[2], person[3]), (0, 255, 0), 2)
+            cv2.putText(display_frame, "", (person[0], person[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         
         # Initialize chair timers if needed
         if len(chair_timers) != len(chairs):
@@ -273,14 +306,14 @@ def main():
                 if chair_timers[i] is None:
                     chair_timers[i] = time.time()
                 chair_elapsed[i] = time.time() - chair_timers[i]
-                cv2.rectangle(frame, (c[0], c[1]), (c[2], c[3]), (0, 0, 255), 2)
-                cv2.putText(frame, f"Empty Chair", (c[0], c[1] - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-                cv2.putText(frame, f"Away: {int(chair_elapsed[i])}s", (c[0], c[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                cv2.rectangle(display_frame, (c[0], c[1]), (c[2], c[3]), (0, 0, 255), 2)
+                cv2.putText(display_frame, f"Empty Chair", (c[0], c[1] - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                cv2.putText(display_frame, f"Away: {int(chair_elapsed[i])}s", (c[0], c[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
                             (0, 0, 255), 2)
         
         # Display and save frame
-        cv2.imshow('Staff Tracking', frame)
-        out.write(frame)
+        cv2.imshow('Staff Tracking', display_frame)
+        out.write(display_frame)
         
         if cv2.waitKey(1) == 27:
             break
