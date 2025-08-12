@@ -1,24 +1,26 @@
-<p align="center">
- <h1 align="center">Staff Tracking YOLO </h1>
-</p>
-Dowload yolo to your device: https://github.com/ultralytics/yolov5
+# Staff Tracking Using YOLOv5 with RKNN device
+Using yolov5 converted model from here https://github.com/airockchip/rknn-toolkit2
 
-## How to run
-Run` pip install -r requirements.txt` in terminal\
-Open test.py\
-Change the video path\
-Run `python test.py`
+## Instruction to run
+### Make sure that your Orange Pi 5 series RK3588 using rknpu > 0.9.8
+Run
+```bash pip install -r requirements.txt
+```
+To install the deps.
+
+Run 
+```bash
+python test.py
+```
+To test with test video `test.mp4`. Change your video or use RTSP to realtime staff checking
 
 ## Demo
-<p align="center">
-  <img src="output.gif" width=650><br/>
-  <i>Demo</i>
-</p>
-
+See the video `output.mp4`
 
 ## Requirements
 
 * **python**
 * **opencv**
 * **YOLO**
+* **RKNN-Toolkit**
 
