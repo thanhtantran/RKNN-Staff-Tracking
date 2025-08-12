@@ -113,7 +113,7 @@ def yolov5_post_process(input_data, anchors, stride, num_classes=80, conf_thres=
 # Main function
 def main():
     # RKNN model path - update this to your model path
-    rknn_model = '../yolov5/yolov5m.rknn'  # Change to your RKNN model path
+    rknn_model = './yolov5/yolov5.rknn'  # Change to your RKNN model path
     target_platform = 'rk3588'  # Change to your target platform
     
     # Initialize RKNN model
@@ -128,7 +128,7 @@ def main():
     stride = [8, 16, 32]  # Strides for each feature map
     
     # Video path
-    video_path = '../test.mp4'  # Change the input video here
+    video_path = 'test.mp4'  # Change the input video here
     cap = cv2.VideoCapture(video_path)
     
     # Initialize chair tracking variables
@@ -138,7 +138,7 @@ def main():
     width = 640
     height = 480
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter('../yolov5/output.mp4', fourcc, fps, (width, height))  # Output video path
+    out = cv2.VideoWriter('output.mp4', fourcc, fps, (width, height))  # Output video path
     
     while cap.isOpened():
         flag, frame = cap.read()
